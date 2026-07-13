@@ -30,4 +30,14 @@ public class UserController {
         }
         return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody(required = true) Map<String,String> requestMap) {
+        try {
+            return userService.Login(requestMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR); 
+    }
 }
