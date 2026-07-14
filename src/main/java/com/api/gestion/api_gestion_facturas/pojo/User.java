@@ -16,6 +16,8 @@ import lombok.Data;
 
 
 @NamedQuery(name="User.findByEmail", query = "select u from User u where u.email=:email")
+@NamedQuery(name = "User.getAllUsers", query = "SELECT NEW com.api.gestion.api_gestion_facturas.wrapper.UserWrapper(u.id,u.nombre,u.email, u.numeroDeContacto, u.status) FROM User u WHERE u.rol='user'")
+@NamedQuery(name = "User.updateStatus", query = "UPDATE User u SET u.status=:status WHERE u.id=:id")
 
 @Data
 @Entity
@@ -23,9 +25,6 @@ import lombok.Data;
 @DynamicInsert
 @Table(name="users")
 public class User {
-
-
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;

@@ -1,7 +1,11 @@
 package com.api.gestion.api_gestion_facturas.service.impl;
 
+import com.api.gestion.api_gestion_facturas.security.jwt.JwtFilter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.api.gestion.api_gestion_facturas.constantes.FacturaConstantes;
@@ -18,6 +23,7 @@ import com.api.gestion.api_gestion_facturas.security.CustomerDetailsService;
 import com.api.gestion.api_gestion_facturas.security.jwt.JwtUtil;
 import com.api.gestion.api_gestion_facturas.service.UserService;
 import com.api.gestion.api_gestion_facturas.util.FacturaUtils;
+import com.api.gestion.api_gestion_facturas.wrapper.UserWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,18 +31,26 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class UserServiceIml implements UserService{
 
-    @Autowired
     private UserRepository userDAO;
-
-    @Autowired
+    
     private AuthenticationManager authenticationManager;
 
-    @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
+    private JwtFilter jwtFilter;
+
     private CustomerDetailsService customerDetailsService;
 
+    private PasswordEncoder passwordEncoder;
+
+    public UserServiceIml(UserRepository userDAO,AuthenticationManager authenticationManager,JwtUtil jwtUtil, CustomerDetailsService customerDetailsService, PasswordEncoder passwordEncoder, JwtFilter jwtFilter){
+        this.userDAO = userDAO;
+        this.authenticationManager=authenticationManager;
+        this.jwtUtil=jwtUtil;
+        this.customerDetailsService=customerDetailsService;
+        this.passwordEncoder=passwordEncoder;
+        this.jwtFilter = jwtFilter;
+    }
 
     
     @Override
@@ -74,7 +88,7 @@ public class UserServiceIml implements UserService{
         user.setNombre(requestMap.get("nombre"));
         user.setNumeroDeContacto(requestMap.get("numeroDeContacto"));
         user.setEmail(requestMap.get("email"));
-        user.setPassword(requestMap.get("password"));
+        user.setPassword(passwordEncoder.encode(requestMap.get("password")));
         user.setStatus("false");
         user.setRol("user");
         return user;
@@ -88,19 +102,56 @@ public class UserServiceIml implements UserService{
                 new UsernamePasswordAuthenticationToken(requesMap.get("email"), requesMap.get("password"))
             );
             if(authentication.isAuthenticated()){
-                if(customerDetailsService.getUserDetail().getStatus().equalsIgnoreCase("true")){
+                User user = userDAO.findByEmail(requesMap.get("email"));
+                if(user != null && user.getStatus() != null && user.getStatus().equalsIgnoreCase("true")){
                     return new ResponseEntity<String>("{\"token\":\""+ jwtUtil.generateToken(
-                        customerDetailsService.getUserDetail().getEmail(), 
-                        customerDetailsService.getUserDetail().getRol())
+                        user.getEmail(),
+                        user.getRol())
                     +"\"}", HttpStatus.OK);
-                }else {
+                } else if(user != null) {
                     return new ResponseEntity<String>("{\"mensaje\":\""+"Espere la aprobacion del administrador"+"\"}",HttpStatus.BAD_REQUEST);
                 }
             }
         }catch(Exception e){
-            log.info("{}"+e);
+            log.info("Error: {}"+e);
         }
         
         return new ResponseEntity<String>("{\"mensaje\":\""+"Credenciales incorrectas "+"\"}",HttpStatus.BAD_REQUEST);
     }
+
+
+    @Override
+    public ResponseEntity<List<UserWrapper>> getAllUsers() {
+        try {
+            if(jwtFilter.isAdmin()){
+                return new ResponseEntity<>(userDAO.getAllUsers(),HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new ArrayList<>(),HttpStatus.UNAUTHORIZED);
+            }
+        }   catch (Exception e) {
+            e.printStackTrace();
+        } 
+        return new ResponseEntity<>(new ArrayList<>(),HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @Override
+    public ResponseEntity<String> update(Map<String, String> requestMap) {
+        try {
+            if(jwtFilter.isAdmin()){
+                Optional<User> optionalUser = userDAO.findById(Integer.parseInt(requestMap.get("id")));
+                if (!optionalUser.isEmpty()) {
+                    userDAO.updateStatus(requestMap.get("status"), Integer.parseInt(requestMap.get("id")));
+                    return FacturaUtils.getResponseEntity("Estatus del usuario actualizado", HttpStatus.OK);
+                } else {
+                    FacturaUtils.getResponseEntity("El usuario no existe", HttpStatus.NOT_FOUND);
+                }
+            } else {
+                return FacturaUtils.getResponseEntity(FacturaConstantes.UNAUTORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }    
 }

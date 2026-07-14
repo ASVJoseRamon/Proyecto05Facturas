@@ -36,7 +36,7 @@ public class JwtFilter extends OncePerRequestFilter{
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if(request.getServletPath().matches("/user/login|/user/forgotpassword|/user/signup")){
+        if(request.getServletPath().matches("/api/v1/user/login|/api/v1/user/forgotpassword|/api/v1/user/signup")){
             filterChain.doFilter(request, response);
         } else {
             String authorizationHeader = request.getHeader("Authorization");
@@ -46,10 +46,10 @@ public class JwtFilter extends OncePerRequestFilter{
                 token = authorizationHeader.substring(7);
                 username = jwtUtil.extractUsername(token);
                 claims = jwtUtil.extractAllClaims(token);
-            }
+            } 
 
             if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
-                UserDetails userDetails = customerDetailsService.loadUserByUsername("username");
+                UserDetails userDetails = customerDetailsService.loadUserByUsername(username);
                 if(jwtUtil.validateToken(token, userDetails)) {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = 
                     new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
