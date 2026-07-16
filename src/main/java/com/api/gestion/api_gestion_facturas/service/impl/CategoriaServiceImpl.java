@@ -3,6 +3,7 @@ package com.api.gestion.api_gestion_facturas.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,10 +81,33 @@ public class CategoriaServiceImpl implements CategoriaService{
             }
             log.info("Usando el metodo findAll() de JPARepository");
             return new ResponseEntity<List<Categoria>>(categoriaDAO.findAll(),HttpStatus.OK);
-        } catch (Exception e) {
+            } catch (Exception e) {
             e.printStackTrace();
         }
         return new ResponseEntity<List<Categoria>>(new ArrayList<>(),HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+
+    @Override
+    public ResponseEntity<String> updateCategoria(Map<String, String> requestMap) {
+        try {
+            if(jwtFilter.isAdmin()) {
+                if(validateCategoriaMap(requestMap, true)) {
+                    Optional optional = categoriaDAO.findById(Integer.parseInt(requestMap.get("id")));
+                    if(optional.isEmpty()) {
+                        categoriaDAO.save(getCategoriaFromMap(requestMap, true));
+                        return FacturaUtils.getResponseEntity("Categoria actualizada", HttpStatus.OK);
+                    }else {
+                       return FacturaUtils.getResponseEntity("Categoria no existe", HttpStatus.NOT_FOUND);
+                    }
+                }
+            } else {
+                return FacturaUtils.getResponseEntity(FacturaConstantes.UNAUTORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return FacturaUtils.getResponseEntity(FacturaConstantes.UNAUTORIZED_ACCESS, HttpStatus.UNAUTHORIZED);
     }
 
 }
