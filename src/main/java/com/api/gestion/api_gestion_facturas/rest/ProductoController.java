@@ -18,9 +18,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
 
 @RequestMapping("/api/v1/producto")
 @RestController
@@ -69,4 +71,73 @@ public class ProductoController {
         return FacturaUtils.getResponseEntity("Ocurrio un error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
     
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteProducto(@PathVariable Integer id){
+        try {
+            return productoService.deleteProduct(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @GetMapping("/get/{name}")
+    public ResponseEntity getProductoByNombre(@PathVariable String name) {
+        try {
+            return productoService.searchByName(name);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }     
+        return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PostMapping("/updateStatus")
+    public ResponseEntity<String> actualizarStatus(@RequestBody Map<String,String> requestMap) {
+        try {
+            return productoService.updateStatus(requestMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR); 
+    }
+
+    @GetMapping("/get/categoria/{id}")
+    public ResponseEntity getProductoByCategoria(@PathVariable Integer id) {
+        try {
+            return productoService.searchByCategoria(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }     
+        return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    
+    @GetMapping("/get/producto/{id}")
+    public ResponseEntity getProductoById(@PathVariable Integer id) {
+        try {
+            return productoService.getProdById(id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }     
+        return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    
+    @GetMapping("/get/productoASC")
+    public ResponseEntity getProductosByDateASC() {
+        try {
+            return productoService.getProductosByDateASC();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }     
+        return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    
+    @GetMapping("/get/productoDESC")
+    public ResponseEntity getProductosByDateDESC() {
+        try {
+            return productoService.getProductosByDateDESC();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }     
+        return FacturaUtils.getResponseEntity(FacturaConstantes.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

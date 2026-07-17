@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import com.api.gestion.api_gestion_facturas.pojo.Producto;
 import com.api.gestion.api_gestion_facturas.wrapper.ProductoWrapper;
 
 public interface ProductoService {
@@ -17,4 +18,18 @@ public interface ProductoService {
     ResponseEntity<String> updateProducto(@RequestBody Map<String, String> requestMap);
 
     ResponseEntity<String> updateProductoFilter(@RequestBody Map<String,String> requestMap, Integer categoriaId, Integer id);
+
+    ResponseEntity<String> deleteProduct(Integer id);
+
+    ResponseEntity<String> updateStatus(Map<String, String> requestMap);
+
+    ResponseEntity<List<Producto>> searchByName(String name);
+
+    ResponseEntity<List<ProductoWrapper>> searchByCategoria(Integer id);
+
+    ResponseEntity<ProductoWrapper> getProdById(Integer id);
+
+    ResponseEntity<List<ProductoWrapper>> getProductosByDateASC();
+
+    ResponseEntity<List<ProductoWrapper>> getProductosByDateDESC();
 }
