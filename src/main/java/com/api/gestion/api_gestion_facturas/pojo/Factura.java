@@ -8,9 +8,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import lombok.Data;
-
+@NamedQueries({
+    @NamedQuery(name = "Factura.getFacturas", query = "SELECT f FROM Factura f ORDER BY f.id DESC"),
+    @NamedQuery(name = "Factura.getFacturasByUsername", query = "SELECT f FROM Factura f WHERE f.createdBy=:username ORDER BY f.id DESC")
+})
 @Data
 @Entity
 @DynamicInsert

@@ -1,10 +1,12 @@
 package com.api.gestion.api_gestion_facturas.util;
 
+import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -12,6 +14,8 @@ import com.google.common.base.Strings;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 public class FacturaUtils {
     private FacturaUtils(){
 
@@ -27,8 +31,8 @@ public class FacturaUtils {
         return "FACTURA-"+time;
     }
 
-    public static JSONArray getJsonArrayFromString(String data) {
-        JSONArray jsonArray = new JSONArray();
+    public static JSONArray getJsonArrayFromString(String data) throws JSONException {
+        JSONArray jsonArray = new JSONArray(data);
         return jsonArray;
     }
 
@@ -40,4 +44,14 @@ public class FacturaUtils {
         return new HashMap<>();
     }
 
+    public static boolean isFieldExist(String path){
+        log.info("Dentro de isFileEsist{}: ",path);
+        try {
+            File file = new File(path);
+            return file != null && file.exists() ? Boolean.TRUE : Boolean.FALSE;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 } 
